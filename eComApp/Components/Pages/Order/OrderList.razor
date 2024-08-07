@@ -1,0 +1,56 @@
+@page "/orders"
+@using eComApp.DB
+@using eComApp.DB.Entities
+@using Microsoft.EntityFrameworkCore
+@inject NavigationManager NavigationManager
+
+<h3>Orders</h3>
+
+<table class="table">
+    <thead>
+    <tr>
+        <th>Order ID</th>
+        <th>Customer</th>
+        <th>Total Amount</th>
+        <th>Status</th>
+        <th>Actions</th>
+    </tr>
+    </thead>
+    <tbody>
+    @foreach (var order in _orders)
+    {
+    <tr>
+        <td>@order.Id</td>
+        <td>@order.Customer.FirstName @order.Customer.LastName</td>
+        <td>@order.TotalAmount</td>
+        <td>@order.Status</td>
+        <td>
+            <button @onclick="@(_ => NavigationManager.NavigateTo($"/order-detail/{order.Id}"))">View</button>
+        </td>
+    </tr>
+    }
+    </tbody>
+</table>
+
+@code {
+    private List<Order> _orders = new();
+
+    protected override async Task OnInitializedAsync()
+    {
+        _orders = await LoadOrdersAsync();
+    }
+
+    private async Task<List<Order>> LoadOrdersAsync()
+    {
+        await using var context = await DbContextFactory?.CreateDbContextAsync()!;
+        
+        return await context.Orders
+            .Include(o => o.Customer)
+            .Include(o => o.OrderItems)
+            .ThenInclude(oi => oi.Product)
+            .ToListAsync();
+    }
+    
+    [Inject]
+    public IDbContextFactory<AppDbContext>? DbContextFactory { get; set; }
+}

@@ -1,0 +1,35 @@
+@page "/products"
+@inherits ProductListBase
+
+<h3>Product List</h3>
+
+<table class="table">
+    <thead>
+    <tr>
+        <th>Id</th>
+        <th>Name</th>
+        <th>Price</th>
+        <th>Stock</th>
+        <th>Category</th>
+        <th>Actions</th>
+    </tr>
+    </thead>
+    <tbody>
+    @foreach (var product in Products)
+    {
+    <tr>
+        <td>@product.Id</td>
+        <td>@product.Name</td>
+        <td>@product.Price</td>
+        <td>@product.Stock</td>
+        <td>@product.Category.Name</td>
+        <td>
+            <button @onclick="() => EditProduct(product.Id)">Edit</button>
+            <button @onclick="() => DeleteProduct(product.Id)">Delete</button>
+        </td>
+    </tr>
+    }
+    </tbody>
+</table>
+<button @onclick="@(context => NavigationManager.NavigateTo("/edit-category/0"))">Add New Category</button>
+

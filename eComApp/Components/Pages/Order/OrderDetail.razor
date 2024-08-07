@@ -1,0 +1,61 @@
+@page "/order-detail/"
+@using eComApp.DB
+@using eComApp.DB.Entities
+@using Microsoft.EntityFrameworkCore
+@inject IDbContextFactory<AppDbContext> DbContextFactory
+
+<h3>Order Detail</h3>
+
+<div>
+    <h4>Customer Information</h4>
+    <p><strong>Name:</strong> @_order?.Customer.FirstName @_order?.Customer.LastName</p>
+    <p><strong>Email:</strong> @_order?.Customer.Email</p>
+    <p><strong>Phone:</strong> @_order?.Customer.PhoneNumber</p>
+</div>
+
+<div>
+    <h4>Order Information</h4>
+    <p><strong>Order ID:</strong> @_order!.Id</p>
+    <p><strong>Order Date:</strong> @_order.OrderDate</p>
+    <p><strong>Total Amount:</strong> @_order.TotalAmount</p>
+    <p><strong>Status:</strong> @_order.Status</p>
+</div>
+
+<div>
+    <h4>Order Items</h4>
+    <table class="table">
+        <thead>
+        <tr>
+            <th>Product Name</th>
+            <th>Quantity</th>
+            <th>Unit Price</th>
+        </tr>
+        </thead>
+        <tbody>
+        @foreach (var item in _order.OrderItems)
+        {
+            <tr>
+                <td>@item.Product.Name</td>
+                <td>@item.Quantity</td>
+                <td>@item.UnitPrice</td>
+            </tr>
+        }
+        </tbody>
+    </table>
+</div>
+
+@code {
+    [Parameter] public int Id { get; set; }
+
+    private Order? _order = new();
+
+    protected override async Task OnInitializedAsync()
+    {
+        await using var context = await DbContextFactory.CreateDbContextAsync();
+        _order = await context.Orders
+            .Include(o => o.Customer)
+            .Include(o => o.OrderItems)
+            .ThenInclude(oi => oi.Product)
+            .FirstOrDefaultAsync(o => o.Id == Id);
+    }
+}
