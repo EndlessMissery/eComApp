@@ -10,13 +10,13 @@ namespace eComApp.DB.Entities
 
         [Required]
         [ForeignKey("OrderId")]
-        public Order Order { get; set; } = null!;
+        public virtual Order Order { get; set; }
 
         public int OrderId { get; set; }
 
         [Required]
         [ForeignKey("ProductId")]
-        public Product Product { get; set; } = null!;
+        public virtual Product Product { get; set; }
 
         public int ProductId { get; set; }
 

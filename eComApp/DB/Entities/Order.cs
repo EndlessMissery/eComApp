@@ -7,12 +7,10 @@ namespace eComApp.DB.Entities
     {
         [Key]
         public int Id { get; set; }
-
+        
         [Required]
         [ForeignKey("CustomerId")]
-        public Customer Customer { get; set; } = null!;
-
-        public int CustomerId { get; set; }
+        public virtual Customer Customer { get; set; }
 
         [Required]
         public DateTime OrderDate { get; set; }
@@ -23,7 +21,6 @@ namespace eComApp.DB.Entities
         [Required]
         public OrderStatus Status { get; set; } = OrderStatus.New;
 
-        [Required]
-        public OrderItem[] OrderItems { get; set; } = null!;
+        public virtual ICollection<OrderItem> OrderItems { get; set; } = new List<OrderItem>();
     }
 }

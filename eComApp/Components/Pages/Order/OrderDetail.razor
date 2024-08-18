@@ -48,14 +48,4 @@
     [Parameter] public int Id { get; set; }
 
     private Order? _order = new();
-
-    protected override async Task OnInitializedAsync()
-    {
-        await using var context = await DbContextFactory.CreateDbContextAsync();
-        _order = await context.Orders
-            .Include(o => o.Customer)
-            .Include(o => o.OrderItems)
-            .ThenInclude(oi => oi.Product)
-            .FirstOrDefaultAsync(o => o.Id == Id);
-    }
 }

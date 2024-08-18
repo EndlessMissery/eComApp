@@ -1,9 +1,6 @@
 @page "/customers"
-@using eComApp.DB
-@using eComApp.DB.Entities
-@using Microsoft.EntityFrameworkCore
-@inject IDbContextFactory<AppDbContext> DbContextFactory
 @inject NavigationManager NavigationManager
+@inherits CustomersBase
 
 <h3>Customers</h3>
 
@@ -19,49 +16,17 @@
     </tr>
     </thead>
     <tbody>
-    @foreach (var customer in _customers)
+    @foreach (var customer in Customers)
     {
-        <tr>
-            <td>@customer.FirstName</td>
-            <td>@customer.LastName</td>
-            <td>@customer.Email</td>
-            <td>
-                <button @onclick="@(_ => NavigationManager.NavigateTo($"/customer-detail/{customer.Id}"))">View</button>
-                <button @onclick="() => DeleteCustomer(customer.Id)">Delete</button>
-            </td>
-        </tr>
+    <tr>
+        <td>@customer.FirstName</td>
+        <td>@customer.LastName</td>
+        <td>@customer.Email</td>
+        <td>
+            <button @onclick="@(_ => NavigationManager.NavigateTo($"/customer-detail/{customer.Id}"))">View</button>
+            <button @onclick="() => DeleteCustomer(customer.Id)">Delete</button>
+        </td>
+    </tr>
     }
     </tbody>
 </table>
-
-@code {
-    private List<Customer> _customers = new();
-
-    protected override async Task OnInitializedAsync()
-    {
-        await LoadCustomersAsync();
-    }
-
-    private async Task LoadCustomersAsync()
-    {
-        await using var context = await DbContextFactory.CreateDbContextAsync();
-        _customers = await context.Customers.ToListAsync();
-    }
-
-    private async Task DeleteCustomer(int customerId)
-    {
-        await using var context = await DbContextFactory.CreateDbContextAsync();
-        var customer = await context.Customers.FindAsync(customerId);
-        if (customer != null)
-        {
-            context.Customers.Remove(customer);
-            await context.SaveChangesAsync();
-            await LoadCustomersAsync();
-        }
-    }
-
-    private void NavigateToAddCustomer()
-    {
-        NavigationManager.NavigateTo("/edit-customer/0");
-    }
-}

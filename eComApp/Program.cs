@@ -1,6 +1,8 @@
 using eComApp.Components;
 using eComApp.DB;
+using eComApp.Seeders;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.AspNetCore.Authentication.Cookies;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -8,12 +10,25 @@ var builder = WebApplication.CreateBuilder(args);
 builder.Services.AddRazorComponents()
     .AddInteractiveServerComponents();
 
+// Add Anti-Forgery service
+builder.Services.AddAntiforgery();
 
+// Add Authentication and Authorization services
+builder.Services.AddAuthentication(CookieAuthenticationDefaults.AuthenticationScheme)
+    .AddCookie(options =>
+    {
+        options.LoginPath = "/Account/Login"; // Adjust this path as needed
+        options.AccessDeniedPath = "/Account/AccessDenied"; // Adjust this path as needed
+    });
+
+builder.Services.AddAuthorization();
+
+// Build configuration from appsettings files
 var configuration = new ConfigurationBuilder()
-    .AddJsonFile("appsettings.Local.json", optional:true, reloadOnChange:true)
+    .AddJsonFile("appsettings.Local.json", optional: true, reloadOnChange: true)
     .Build();
 
-
+// Configure DbContext
 builder.Services.AddDbContextFactory<AppDbContext>(options =>
 {
     options.UseSqlServer(configuration.GetConnectionString("DefaultConnection"));
@@ -29,22 +44,28 @@ var app = builder.Build();
 if (!app.Environment.IsDevelopment())
 {
     app.UseExceptionHandler("/Error", createScopeForErrors: true);
-    // The default HSTS value is 30 days. You may want to change this for production scenarios, see https://aka.ms/aspnetcore-hsts.
     app.UseHsts();
 }
 
-var scope = app.Services.CreateScope();
-using (var dbContext = scope.ServiceProvider.GetRequiredService<AppDbContext>())
+app.UseHttpsRedirection();
+app.UseStaticFiles();
+
+app.UseRouting();
+
+app.UseAuthentication(); // Add Authentication middleware
+app.UseAuthorization();  // Add Authorization middleware
+
+app.UseAntiforgery(); // Add Anti-forgery middleware
+
+// Seed data
+using (var scope = app.Services.CreateScope())
 {
-    dbContext.Database.EnsureDeleted();
-    dbContext.Database.EnsureCreated();
+    var dbContext = scope.ServiceProvider.GetRequiredService<AppDbContext>();
+    var seeder = new DataSeeder(dbContext);
+    await seeder.SeedAsync();
 }
 
-app.UseHttpsRedirection();
-
-app.UseStaticFiles();
-app.UseAntiforgery();
-
+// Map Razor Components
 app.MapRazorComponents<App>()
     .AddInteractiveServerRenderMode();
 
